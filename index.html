@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cập nhật ảnh từ Google Sheet</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 10px; }
+  .container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .frame { width: 220px; border: 2px solid #ccc; padding: 10px; border-radius: 10px; text-align: center; }
+  img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #999; min-height: 150px; object-fit: contain; background: #f9f9f9; }
+  h4 { margin: 6px 0; }
+</style>
+</head>
+<body>
+<h2 style="text-align:center;">📸 Ảnh từ Google Sheet</h2>
+<div class="container" id="frames"></div>
+
+<script>
+const SHEET_ID = "1IJbcPeAoTf_9GUareM5dYI7Te4C6c2X-vcT5dtVE_sI"; // Thay bằng ID sheet
+const RANGE = "A1:C3"; // Thay bằng vùng dữ liệu chứa ảnh (cột A-C)
+
+// URL xuất Sheet thành JSON qua API public (API v4 JSON feed cũ)
+const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(RANGE)}`;
+
+async function loadImages() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    const container = document.getElementById("frames");
+    container.innerHTML = "";
+
+    data.forEach((row, index) => {
+      // Giả sử cột C chứa URL ảnh
+      const url = row.C || "https://via.placeholder.com/200x150?text=No+Image";
+      const frame = document.createElement("div");
+      frame.className = "frame";
+      frame.innerHTML = `
+        <h4>Ảnh #${index + 1}</h4>
+        <img src="${url}" alt="Ảnh ${index + 1}">
+      `;
+      container.appendChild(frame);
+    });
+  } catch (err) {
+    console.error("Lỗi tải dữ liệu:", err);
+  }
+}
+
+// Gọi khi load và refresh mỗi 30 giây
+loadImages();
+setInterval(loadImages, 30000);
+</script>
+</body>
+</html>
