@@ -62,7 +62,7 @@ product_page.html
   if (!shortId) {
     document.getElementById("products").innerHTML = "<b>Thiếu tham số ?id=</b>";
   } else {
-    fetch(`https://script.google.com/macros/s/AKfycbwiZu8dkj71FM0Q4tSje0XUSvnyGez5A3U6_T6Zi3OEIkNGzT_1SSZFHpSizDqr1ySL/exec?action=getProducts&id=${shortId}`)
+    fetch(`https://script.google.com/macros/s/AKfycbzM3MibKbPRmwuGRNp_VVDub3cV6bm2Jul14WkIR0bBuZErwQjud9VexbjNi8XND02m/exec?action=getProducts&id=${shortId}`)
       .then(res => res.json())
       .then(data => {
         let html = "";
@@ -151,7 +151,7 @@ product_page.html
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    fetch(`https://script.google.com/macros/s/AKfycbwiZu8dkj71FM0Q4tSje0XUSvnyGez5A3U6_T6Zi3OEIkNGzT_1SSZFHpSizDqr1ySL/exec?action=placeOrderBatch&id=${shortId}`, {
+    fetch(`https://script.google.com/macros/s/AKfycbzM3MibKbPRmwuGRNp_VVDub3cV6bm2Jul14WkIR0bBuZErwQjud9VexbjNi8XND02m/exec?action=placeOrderBatch&id=${shortId}`, {
       method: "POST",
       body: JSON.stringify({ cartItems: cart, customerInfo }),
       headers: { "Content-Type": "application/json" }
