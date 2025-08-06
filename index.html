@@ -1,4 +1,3 @@
-product_page.html
 <!DOCTYPE html>
 <html>
 <head>
@@ -62,7 +61,7 @@ product_page.html
   if (!shortId) {
     document.getElementById("products").innerHTML = "<b>Thiếu tham số ?id=</b>";
   } else {
-    fetch(`https://script.google.com/macros/s/AKfycbzM3MibKbPRmwuGRNp_VVDub3cV6bm2Jul14WkIR0bBuZErwQjud9VexbjNi8XND02m/exec?action=getProducts&id=${shortId}`)
+    fetch(`https://script.google.com/macros/s/AKfycbwx3nbBTiTOWle-NjDbJxuPWOAreSyClqUV9B3OqVSUCdDUh1Dk7s3ejd96y24sgTGv/exec?action=getProducts&id=${shortId}`)
       .then(res => res.json())
       .then(data => {
         let html = "";
@@ -151,7 +150,7 @@ product_page.html
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    fetch(`https://script.google.com/macros/s/AKfycbzM3MibKbPRmwuGRNp_VVDub3cV6bm2Jul14WkIR0bBuZErwQjud9VexbjNi8XND02m/exec?action=placeOrderBatch&id=${shortId}`, {
+    fetch(`https://script.google.com/macros/s/AKfycbwx3nbBTiTOWle-NjDbJxuPWOAreSyClqUV9B3OqVSUCdDUh1Dk7s3ejd96y24sgTGv/exec?action=placeOrderBatch&id=${shortId}`, {
       method: "POST",
       body: JSON.stringify({ cartItems: cart, customerInfo }),
       headers: { "Content-Type": "application/json" }
@@ -169,4 +168,3 @@ product_page.html
 </script>
 </body>
 </html>
-  
