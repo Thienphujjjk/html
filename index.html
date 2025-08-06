@@ -1,8 +1,9 @@
-shop_static.html
+product_page.html
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Sản phẩm</title>
   <style>
     body { font-family: Arial; padding: 20px; }
     .grid { display: flex; flex-wrap: wrap; gap: 15px; }
@@ -15,15 +16,9 @@ shop_static.html
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
     th { background: #f2f2f2; }
-    .modal {
-      display: none;
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center; align-items: center;
-    }
-    .modal-content {
-      background: white; padding: 20px; border-radius: 8px; width: 300px;
-    }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 300px; }
     .modal input, .modal textarea { width: 100%; padding: 5px; margin-bottom: 10px; }
   </style>
 </head>
@@ -35,7 +30,7 @@ shop_static.html
   <div id="cart"></div>
   <button onclick="showCustomerForm()">Xác nhận đơn hàng</button>
 
-  
+  <!-- Modal chọn số lượng -->
   <div id="qtyModal" class="modal">
     <div class="modal-content">
       <h4>Chọn số lượng</h4>
@@ -46,7 +41,7 @@ shop_static.html
     </div>
   </div>
 
-  
+  <!-- Modal thông tin khách hàng -->
   <div id="customerModal" class="modal">
     <div class="modal-content">
       <h4>Thông tin khách hàng</h4>
@@ -58,106 +53,120 @@ shop_static.html
     </div>
   </div>
 
-  <script>
-    const shortId = "<?= shortId ?>";
-    let cart = [];
-    let currentProduct = null;
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const shortId = params.get("id");
+  let cart = [];
+  let currentProduct = null;
 
-    google.script.run.withSuccessHandler(function(data) {
-      let html = "";
-      data.forEach(p => {
-        html += `
-          <div class="product">
-            <img src="${p.image}">
-            <div class="name">${p.name}</div>
-            <div class="price">${p.price} đ</div>
-            <div class="weight">${p.weight}</div>
-            <button onclick="openQtyModal('${p.name}', '${p.price}', '${p.weight}')">Mua</button>
-          </div>
-        `;
+  if (!shortId) {
+    document.getElementById("products").innerHTML = "<b>Thiếu tham số ?id=</b>";
+  } else {
+    fetch(`https://script.google.com/macros/s/AKfycbxnnJxmCbMM0MbKeyV6nkP6vGrToisGLmqKqxRQFDWBt7N-KQcQkES8oTF6STo5jZ3M/exec?action=getProducts&id=${shortId}`)
+      .then(res => res.json())
+      .then(data => {
+        let html = "";
+        data.forEach(p => {
+          html += `
+            <div class="product">
+              <img src="${p.image}">
+              <div class="name">${p.name}</div>
+              <div class="price">${p.price} đ</div>
+              <div class="weight">${p.weight}</div>
+              <button onclick="openQtyModal('${p.name}', '${p.price}', '${p.weight}')">Mua</button>
+            </div>
+          `;
+        });
+        document.getElementById("products").innerHTML = html;
       });
-      document.getElementById("products").innerHTML = html;
-    }).getProducts(shortId);
+  }
 
-    function openQtyModal(name, price, weight) {
-      currentProduct = { name, price, weight };
-      let existing = cart.find(item => item.name === name);
-      document.getElementById("qtyInput").value = existing ? existing.qty + 1 : 1;
-      document.getElementById("qtyProductName").innerText = name;
-      document.getElementById("qtyModal").style.display = "flex";
+  function openQtyModal(name, price, weight) {
+    currentProduct = { name, price, weight };
+    let existing = cart.find(item => item.name === name);
+    document.getElementById("qtyInput").value = existing ? existing.qty + 1 : 1;
+    document.getElementById("qtyProductName").innerText = name;
+    document.getElementById("qtyModal").style.display = "flex";
+  }
+
+  function saveQty() {
+    let qty = parseInt(document.getElementById("qtyInput").value);
+    if (qty < 1) qty = 1;
+    let existing = cart.find(item => item.name === currentProduct.name);
+    if (existing) {
+      existing.qty = qty;
+    } else {
+      cart.push({ ...currentProduct, qty });
     }
-
-    function saveQty() {
-      let qty = parseInt(document.getElementById("qtyInput").value);
-      if (qty < 1) qty = 1;
-      let existing = cart.find(item => item.name === currentProduct.name);
-      if (existing) {
-        existing.qty = qty;
-      } else {
-        cart.push({ ...currentProduct, qty });
-      }
-      closeQtyModal();
-      renderCart();
-    }
-
-    function closeQtyModal() {
-      document.getElementById("qtyModal").style.display = "none";
-    }
-
-    function renderCart() {
-      if (cart.length === 0) {
-        document.getElementById("cart").innerHTML = "<i>Giỏ hàng trống</i>";
-        return;
-      }
-      let html = "<table><tr><th>Tên</th><th>Giá</th><th>KL</th><th>SL</th><th>Tổng</th></tr>";
-      let total = 0;
-      cart.forEach(item => {
-        let itemTotal = parseFloat(item.price) * item.qty;
-        total += itemTotal;
-        html += `<tr>
-                  <td>${item.name}</td>
-                  <td>${item.price}</td>
-                  <td>${item.weight}</td>
-                  <td>${item.qty}</td>
-                  <td>${itemTotal.toLocaleString()}</td>
-                 </tr>`;
-      });
-      html += `<tr><th colspan="4">Tổng cộng</th><th>${total.toLocaleString()}</th></tr>`;
-      html += "</table>";
-      document.getElementById("cart").innerHTML = html;
-    }
-
-    function showCustomerForm() {
-      if (cart.length === 0) {
-        alert("Giỏ hàng trống!");
-        return;
-      }
-      document.getElementById("customerModal").style.display = "flex";
-    }
-
-    function closeCustomerModal() {
-      document.getElementById("customerModal").style.display = "none";
-    }
-
-    function confirmOrder() {
-      let customerInfo = {
-        name: document.getElementById("cusName").value.trim(),
-        phone: document.getElementById("cusPhone").value.trim(),
-        address: document.getElementById("cusAddress").value.trim()
-      };
-      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-        return;
-      }
-      google.script.run.withSuccessHandler(function(msg) {
-        alert(msg);
-        cart = [];
-        renderCart();
-        closeCustomerModal();
-      }).placeOrderBatch(shortId, cart, customerInfo);
-    }
-
+    closeQtyModal();
     renderCart();
-  </script>
+  }
+
+  function closeQtyModal() {
+    document.getElementById("qtyModal").style.display = "none";
+  }
+
+  function renderCart() {
+    if (cart.length === 0) {
+      document.getElementById("cart").innerHTML = "<i>Giỏ hàng trống</i>";
+      return;
+    }
+    let html = "<table><tr><th>Tên</th><th>Giá</th><th>KL</th><th>SL</th><th>Tổng</th></tr>";
+    let total = 0;
+    cart.forEach(item => {
+      let itemTotal = parseFloat(item.price) * item.qty;
+      total += itemTotal;
+      html += `<tr>
+                <td>${item.name}</td>
+                <td>${item.price}</td>
+                <td>${item.weight}</td>
+                <td>${item.qty}</td>
+                <td>${itemTotal.toLocaleString()}</td>
+              </tr>`;
+    });
+    html += `<tr><th colspan="4">Tổng cộng</th><th>${total.toLocaleString()}</th></tr>`;
+    html += "</table>";
+    document.getElementById("cart").innerHTML = html;
+  }
+
+  function showCustomerForm() {
+    if (cart.length === 0) {
+      alert("Giỏ hàng trống!");
+      return;
+    }
+    document.getElementById("customerModal").style.display = "flex";
+  }
+
+  function closeCustomerModal() {
+    document.getElementById("customerModal").style.display = "none";
+  }
+
+  function confirmOrder() {
+    let customerInfo = {
+      name: document.getElementById("cusName").value.trim(),
+      phone: document.getElementById("cusPhone").value.trim(),
+      address: document.getElementById("cusAddress").value.trim()
+    };
+    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+      alert("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+    fetch(`https://script.google.com/macros/s/AKfycbxnnJxmCbMM0MbKeyV6nkP6vGrToisGLmqKqxRQFDWBt7N-KQcQkES8oTF6STo5jZ3M/exec?action=placeOrderBatch&id=${shortId}`, {
+      method: "POST",
+      body: JSON.stringify({ cartItems: cart, customerInfo }),
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      cart = [];
+      renderCart();
+      closeCustomerModal();
+    });
+  }
+
+  renderCart();
+</script>
 </body>
 </html>
+  
