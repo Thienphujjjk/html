@@ -1,19 +1,163 @@
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Website sản phẩm</title>
-      <style>
-        body { font-family: Arial; padding: 20px; }
-        .product { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        img { max-width: 200px; display: block; }
-      </style>
-    </head>
-    <body>
-      <h1>Danh sách sản phẩm</h1>
+shop_static.html
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 15px; }
+    .product { border: 1px solid #ddd; padding: 15px; max-width: 220px; border-radius: 8px; }
+    img { width: 100%; border-radius: 8px; }
+    .name { font-size: 16px; font-weight: bold; margin-top: 10px; }
+    .price { color: red; font-weight: bold; }
+    .weight { color: #555; }
+    button { background: orange; border: none; padding: 8px 12px; color: white; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+    th { background: #f2f2f2; }
+    .modal {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; border-radius: 8px; width: 300px;
+    }
+    .modal input, .modal textarea { width: 100%; padding: 5px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Danh sách sản phẩm</h2>
+  <div id="products" class="grid"></div>
+
+  <h3>Giỏ hàng</h3>
+  <div id="cart"></div>
+  <button onclick="showCustomerForm()">Xác nhận đơn hàng</button>
+
   
-      <div class="product">
-        <h2>Sản phẩm A</h2>
-        <img src="https://drive.google.com/thumbnail?id=16Ll71UUFTBbebP7zmA4cRZzgIzmLFoLq" alt="Sản phẩm A">
-        <p>Mô tả A</p>
-      </div>
-    </body></html>
+  <div id="qtyModal" class="modal">
+    <div class="modal-content">
+      <h4>Chọn số lượng</h4>
+      <div id="qtyProductName" style="margin-bottom:5px;font-weight:bold;"></div>
+      <input type="number" id="qtyInput" min="1" value="1">
+      <button onclick="saveQty()">Lưu</button>
+      <button onclick="closeQtyModal()">Hủy</button>
+    </div>
+  </div>
+
+  
+  <div id="customerModal" class="modal">
+    <div class="modal-content">
+      <h4>Thông tin khách hàng</h4>
+      <input id="cusName" placeholder="Họ và tên">
+      <input id="cusPhone" placeholder="Số điện thoại">
+      <textarea id="cusAddress" placeholder="Địa chỉ"></textarea>
+      <button onclick="confirmOrder()">Gửi đơn hàng</button>
+      <button onclick="closeCustomerModal()">Hủy</button>
+    </div>
+  </div>
+
+  <script>
+    const shortId = "<?= shortId ?>";
+    let cart = [];
+    let currentProduct = null;
+
+    google.script.run.withSuccessHandler(function(data) {
+      let html = "";
+      data.forEach(p => {
+        html += `
+          <div class="product">
+            <img src="${p.image}">
+            <div class="name">${p.name}</div>
+            <div class="price">${p.price} đ</div>
+            <div class="weight">${p.weight}</div>
+            <button onclick="openQtyModal('${p.name}', '${p.price}', '${p.weight}')">Mua</button>
+          </div>
+        `;
+      });
+      document.getElementById("products").innerHTML = html;
+    }).getProducts(shortId);
+
+    function openQtyModal(name, price, weight) {
+      currentProduct = { name, price, weight };
+      let existing = cart.find(item => item.name === name);
+      document.getElementById("qtyInput").value = existing ? existing.qty + 1 : 1;
+      document.getElementById("qtyProductName").innerText = name;
+      document.getElementById("qtyModal").style.display = "flex";
+    }
+
+    function saveQty() {
+      let qty = parseInt(document.getElementById("qtyInput").value);
+      if (qty < 1) qty = 1;
+      let existing = cart.find(item => item.name === currentProduct.name);
+      if (existing) {
+        existing.qty = qty;
+      } else {
+        cart.push({ ...currentProduct, qty });
+      }
+      closeQtyModal();
+      renderCart();
+    }
+
+    function closeQtyModal() {
+      document.getElementById("qtyModal").style.display = "none";
+    }
+
+    function renderCart() {
+      if (cart.length === 0) {
+        document.getElementById("cart").innerHTML = "<i>Giỏ hàng trống</i>";
+        return;
+      }
+      let html = "<table><tr><th>Tên</th><th>Giá</th><th>KL</th><th>SL</th><th>Tổng</th></tr>";
+      let total = 0;
+      cart.forEach(item => {
+        let itemTotal = parseFloat(item.price) * item.qty;
+        total += itemTotal;
+        html += `<tr>
+                  <td>${item.name}</td>
+                  <td>${item.price}</td>
+                  <td>${item.weight}</td>
+                  <td>${item.qty}</td>
+                  <td>${itemTotal.toLocaleString()}</td>
+                 </tr>`;
+      });
+      html += `<tr><th colspan="4">Tổng cộng</th><th>${total.toLocaleString()}</th></tr>`;
+      html += "</table>";
+      document.getElementById("cart").innerHTML = html;
+    }
+
+    function showCustomerForm() {
+      if (cart.length === 0) {
+        alert("Giỏ hàng trống!");
+        return;
+      }
+      document.getElementById("customerModal").style.display = "flex";
+    }
+
+    function closeCustomerModal() {
+      document.getElementById("customerModal").style.display = "none";
+    }
+
+    function confirmOrder() {
+      let customerInfo = {
+        name: document.getElementById("cusName").value.trim(),
+        phone: document.getElementById("cusPhone").value.trim(),
+        address: document.getElementById("cusAddress").value.trim()
+      };
+      if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+        return;
+      }
+      google.script.run.withSuccessHandler(function(msg) {
+        alert(msg);
+        cart = [];
+        renderCart();
+        closeCustomerModal();
+      }).placeOrderBatch(shortId, cart, customerInfo);
+    }
+
+    renderCart();
+  </script>
+</body>
+</html>
