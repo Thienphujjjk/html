@@ -2,41 +2,107 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Hiển thị ô A1 từ Google Sheets</title>
+  <title>Hiển thị A1:D1 với ảnh và giỏ hàng</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-</head>
-<body>
-  <h1>Nội dung ô A1 trong Sheet</h1>
-  <div id="a1value">Đang tải dữ liệu...</div>
-
   <script>
-    const spreadsheetId = '1EUdSLPDwBC92X-3s9hjLPcsmyPpsE7xMYk7nBv4TWsM';
-    const sheetName = 'Sản phẩm'; // phải đúng 100% tên sheet
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(loadData);
 
-    google.charts.load('current', {'packages':['table']});
-    google.charts.setOnLoadCallback(draw);
+    let product = {};
 
-    function draw() {
-      const queryString = encodeURIComponent('select A limit 1');
-      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${sheetName}&tq=${queryString}`;
-      const query = new google.visualization.Query(url);
+    function loadData() {
+      const query = new google.visualization.Query(
+        'https://docs.google.com/spreadsheets/d/1EUdSLPDwBC92X-3s9hjLPcsmyPpsE7xMYk7nBv4TWsM/gviz/tq?sheet=Sheet1'
+      );
+      query.setQuery('SELECT A, B, C, D LIMIT 1');
+      query.send(handleQueryResponse);
+    }
 
-      console.log('Fetching data from:', url); // debug
+    function handleQueryResponse(response) {
+      if (response.isError()) {
+        document.getElementById('output').textContent = 'Lỗi: ' + response.getMessage();
+        return;
+      }
 
-      query.send(response => {
-        if (response.isError()) {
-          const errMsg = 'Lỗi lấy dữ liệu: ' + response.getMessage();
-          console.error(errMsg);
-          document.getElementById('a1value').innerText = errMsg;
-          return;
+      const data = response.getDataTable();
+      const row = [];
+      for (let col = 0; col < data.getNumberOfColumns(); col++) {
+        row.push(data.getValue(0, col));
+      }
+
+      // Lưu sản phẩm vào biến toàn cục để dùng gửi đơn
+      product = {
+        name: row[0],
+        description: row[1],
+        price: row[2],
+        imageUrl: row[3]
+      };
+
+      document.getElementById('output').innerHTML = `
+        <ul>
+          <li><strong>Tên sản phẩm (A1):</strong> ${product.name}</li>
+          <li><strong>Mô tả (B1):</strong> ${product.description}</li>
+          <li><strong>Giá (C1):</strong> ${product.price} đ</li>
+          <li><strong>Ảnh (D1):</strong><br/>
+            <img src="${product.imageUrl}" alt="Ảnh sản phẩm" style="max-width:300px; max-height:200px;" />
+          </li>
+        </ul>
+
+        <h2>Đặt hàng</h2>
+        <form id="orderForm">
+          <label>Số lượng: <input type="number" name="quantity" value="1" min="1" required></label><br/><br/>
+          <label>Số điện thoại: <input type="tel" name="phone" required placeholder="Nhập số điện thoại"></label><br/><br/>
+          <button type="submit">Gửi đơn hàng</button>
+        </form>
+
+        <div id="message"></div>
+      `;
+
+      // Gán sự kiện gửi form
+      document.getElementById('orderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendOrder();
+      });
+    }
+
+    function sendOrder() {
+      const form = document.getElementById('orderForm');
+      const quantity = form.quantity.value;
+      const phone = form.phone.value.trim();
+
+      if (!phone) {
+        alert('Vui lòng nhập số điện thoại!');
+        return;
+      }
+
+      const orderData = {
+        productName: product.name,
+        quantity: quantity,
+        phone: phone
+      };
+
+      // Thay YOUR_WEBAPP_URL bằng URL web app Apps Script của bạn
+      fetch('https://script.google.com/macros/s/AKfycbzk9KVf-R5v9HzprcHF-exSowJzv_bn8vI20GxGh6w5hqWsFxti2ItN-OtXm9d3sQIF/exec', {
+        method: 'POST',
+        body: JSON.stringify(orderData),
+        headers: {
+          'Content-Type': 'application/json'
         }
-
-        const dataTable = response.getDataTable();
-        const value = dataTable.getValue(0, 0);
-        console.log('Giá trị ô A1:', value);
-        document.getElementById('a1value').innerText = value || 'Ô A1 trống';
+      })
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('message').textContent = text;
+        form.reset();
+      })
+      .catch(err => {
+        document.getElementById('message').textContent = 'Lỗi gửi đơn hàng, vui lòng thử lại.';
+        console.error(err);
       });
     }
   </script>
+</head>
+<body>
+  <h1>Dữ liệu từ ô A1:D1 với ảnh và giỏ hàng</h1>
+  <div id="output">Đang tải dữ liệu...</div>
 </body>
 </html>
