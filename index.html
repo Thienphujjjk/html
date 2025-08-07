@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Hiển thị A1:D1 với ảnh và giỏ hàng1</title>
+  <title>Hiển thị A1:D111 với ảnh và giỏ hàng</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script>
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(loadData);
 
-    let product = {};
+    let sanPham = {}; // Để lưu thông tin sản phẩm đang hiển thị
 
     function loadData() {
       const query = new google.visualization.Query(
@@ -30,82 +30,61 @@
         row.push(data.getValue(0, col));
       }
 
-      // Lưu sản phẩm vào biến toàn cục để dùng gửi đơn
-      product = {
-        name: row[0],
-        description: row[1],
-        price: row[2],
-        imageUrl: row[3]
+      sanPham = {
+        ten: row[0],
+        moTa: row[1],
+        gia: row[2],
+        anh: row[3]
       };
 
       document.getElementById('output').innerHTML = `
-        <ul>
-          <li><strong>Tên sản phẩm 2(A1):</strong> ${product.name}</li>
-          <li><strong>Mô tả (B1):</strong> ${product.description}</li>
-          <li><strong>Giá (C1):</strong> ${product.price} đ</li>
-          <li><strong>Ảnh (D1):</strong><br/>
-            <img src="${product.imageUrl}" alt="Ảnh sản phẩm" style="max-width:300px; max-height:200px;" />
-          </li>
-        </ul>
+        <h2>${sanPham.ten}</h2>
+        <img src="${sanPham.anh}" alt="${sanPham.ten}" style="max-width:300px; max-height:200px;" />
+        <p>${sanPham.moTa}</p>
+        <p><strong>Giá: </strong> ${sanPham.gia} đ</p>
 
-        <h2>Đặt hàng</h2>
-        <form id="orderForm">
-          <label>Số lượng: <input type="number" name="quantity" value="1" min="1" required></label><br/><br/>
-          <label>Số điện thoại: <input type="tel" name="phone" required placeholder="Nhập số điện thoại"></label><br/><br/>
-          <button type="submit">Gửi đơn hàng</button>
-        </form>
+        <label>Số lượng: <input type="number" id="soLuong" value="1" min="1" /></label><br/><br/>
 
-        <div id="message"></div>
+        <label>Số điện thoại: <input type="text" id="soDT" placeholder="Nhập số điện thoại" /></label><br/><br/>
+
+        <button onclick="datHang()">Đặt hàng</button>
+
+        <div id="ketQua"></div>
       `;
-
-      // Gán sự kiện gửi form
-      document.getElementById('orderForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        sendOrder();
-      });
     }
 
-    function sendOrder() {
-      const form = document.getElementById('orderForm');
-      const quantity = form.quantity.value;
-      const phone = form.phone.value.trim();
+    function datHang() {
+      const soLuong = parseInt(document.getElementById('soLuong').value);
+      const soDT = document.getElementById('soDT').value.trim();
 
-      if (!phone) {
-        alert('Vui lòng nhập số điện thoại!');
+      if (!soDT) {
+        alert("Vui lòng nhập số điện thoại!");
         return;
       }
 
-      const orderData = {
-        productName: product.name,
-        quantity: quantity,
-        phone: phone
+      const donHang = {
+        tenSanPham: sanPham.ten,
+        soLuong: soLuong,
+        soDT: soDT
       };
 
-      // Thay YOUR_WEBAPP_URL bằng URL web app Apps Script của bạn
-      fetch('https://script.google.com/macros/s/AKfycbyJ5ytHpqRdi1TXaKaI8K1GTwDJ7xxFIP_6PJHYDj1wUewZX4CgIRJIghBijfErYYWs/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzs0ipvgKQHDW9L-gUG-NEYrUM_8Xy1-99ksLf7_7agxrVFTjYaaOMbiS0mrcQWkJ6u/exec', { // Thay YOUR_WEBAPP_ID bằng ID thật
         method: 'POST',
-        body: JSON.stringify(orderData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(donHang)
       })
-      .then(response => response.text())
-      .then(text => {
-        document.getElementById('message').textContent = text;
-        form.reset();
+      .then(res => res.text())
+      .then(txt => {
+        document.getElementById('ketQua').innerText = txt;
       })
       .catch(err => {
-        document.getElementById('message').textContent = 'Lỗi gửi đơn hàng, vui lòng thử lại.';
-        console.error(err);
+        document.getElementById('ketQua').innerText = "Lỗi gửi đơn hàng: " + err.message;
       });
     }
   </script>
 </head>
 <body>
-  <h1>Dữ liệu từ ô A1:D1 với ảnh và giỏ hàng</h1>
-  <div id="output">Đang tải dữ liệu...</div>
+  <h1>Giỏ hàng và Đặt hàng từ Sheet</h1>
+  <div id="output">Đang tải dữ liệu sản phẩm...</div>
 </body>
 </html>
-
-
-
