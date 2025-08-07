@@ -40,7 +40,7 @@
 
       document.getElementById('output').innerHTML = `
         <ul>
-          <li><strong>Tên sản phẩm (A1):</strong> ${product.name}</li>
+          <li><strong>Tên sản phẩm 2(A1):</strong> ${product.name}</li>
           <li><strong>Mô tả (B1):</strong> ${product.description}</li>
           <li><strong>Giá (C1):</strong> ${product.price} đ</li>
           <li><strong>Ảnh (D1):</strong><br/>
@@ -82,7 +82,7 @@
       };
 
       // Thay YOUR_WEBAPP_URL bằng URL web app Apps Script của bạn
-      fetch('https://script.google.com/macros/s/AKfycbzbwz33mVcLlPa-VEO7CJY7PSlj4YaLAPuig9lBGP9_Yq2YUehvJRwPuixnVkZvVZ1D/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbyJ5ytHpqRdi1TXaKaI8K1GTwDJ7xxFIP_6PJHYDj1wUewZX4CgIRJIghBijfErYYWs/exec', {
         method: 'POST',
         body: JSON.stringify(orderData),
         headers: {
@@ -106,5 +106,6 @@
   <div id="output">Đang tải dữ liệu...</div>
 </body>
 </html>
+
 
 
