@@ -1,31 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Sản phẩm undefined</title>
+  <meta charset="UTF-8" />
+  <title>Hiển thị ô A1 từ Google Sheets</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
-  <h1>Danh sách sản phẩm - undefined</h1>
-  <div id="products"></div>
+  <h1>Nội dung ô A1 trong Sheet</h1>
+  <div id="a1value">Đang tải dữ liệu...</div>
+
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwx3nbBTiTOWle-NjDbJxuPWOAreSyClqUV9B3OqVSUCdDUh1Dk7s3ejd96y24sgTGv/exec"; // Link Web App
-    const shortId = "undefined";
-    fetch(`${API_URL}?action=getProducts&id=${shortId}`)
-      .then(res => res.json())
-      .then(data => {
-        let html = "";
-        data.forEach(p => {
-          html += `
-            <div>
-              <img src="${p.image}" width="150">
-              <div>${p.name}</div>
-              <div>${p.price} đ</div>
-              <div>${p.weight}</div>
-            </div>
-          `;
-        });
-        document.getElementById("products").innerHTML = html;
+    const spreadsheetId = '1EUdSLPDwBC92X-3s9hjLPcsmyPpsE7xMYk7nBv4TWsM';
+    const sheetName = 'Sản phẩm'; // phải đúng 100% tên sheet
+
+    google.charts.load('current', {'packages':['table']});
+    google.charts.setOnLoadCallback(draw);
+
+    function draw() {
+      const queryString = encodeURIComponent('select A limit 1');
+      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${sheetName}&tq=${queryString}`;
+      const query = new google.visualization.Query(url);
+
+      console.log('Fetching data from:', url); // debug
+
+      query.send(response => {
+        if (response.isError()) {
+          const errMsg = 'Lỗi lấy dữ liệu: ' + response.getMessage();
+          console.error(errMsg);
+          document.getElementById('a1value').innerText = errMsg;
+          return;
+        }
+
+        const dataTable = response.getDataTable();
+        const value = dataTable.getValue(0, 0);
+        console.log('Giá trị ô A1:', value);
+        document.getElementById('a1value').innerText = value || 'Ô A1 trống';
       });
+    }
   </script>
 </body>
 </html>
