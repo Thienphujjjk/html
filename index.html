@@ -1,90 +1,414 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <title>Hiển thị A1:D1 với ảnh và giỏ hàng</title>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script>
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(loadData);
-
-    let sanPham = {}; // Để lưu thông tin sản phẩm đang hiển thị
-
-    function loadData() {
-      const query = new google.visualization.Query(
-        'https://docs.google.com/spreadsheets/d/1EUdSLPDwBC92X-3s9hjLPcsmyPpsE7xMYk7nBv4TWsM/gviz/tq?sheet=Sheet1'
-      );
-      query.setQuery('SELECT A, B, C, D LIMIT 1');
-      query.send(handleQueryResponse);
-    }
-
-    function handleQueryResponse(response) {
-      if (response.isError()) {
-        document.getElementById('output').textContent = 'Lỗi: ' + response.getMessage();
-        return;
-      }
-
-      const data = response.getDataTable();
-      const row = [];
-      for (let col = 0; col < data.getNumberOfColumns(); col++) {
-        row.push(data.getValue(0, col));
-      }
-
-      sanPham = {
-        ten: row[0],
-        moTa: row[1],
-        gia: row[2],
-        anh: row[3]
-      };
-
-      document.getElementById('output').innerHTML = `
-        <h2>${sanPham.ten}</h2>
-        <img src="${sanPham.anh}" alt="${sanPham.ten}" style="max-width:300px; max-height:200px;" />
-        <p>${sanPham.moTa}</p>
-        <p><strong>Giá: </strong> ${sanPham.gia} đ</p>
-
-        <label>Số lượng: <input type="number" id="soLuong" value="1" min="1" /></label><br/><br/>
-
-        <label>Số điện thoại: <input type="text" id="soDT" placeholder="Nhập số điện thoại" /></label><br/><br/>
-
-        <button onclick="datHang()">Đặt hàng</button>
-
-        <div id="ketQua"></div>
-      `;
-    }
-
-    function datHang() {
-      const soLuong = parseInt(document.getElementById('soLuong').value);
-      const soDT = document.getElementById('soDT').value.trim();
-
-      if (!soDT) {
-        alert("Vui lòng nhập số điện thoại!");
-        return;
-      }
-
-      const donHang = {
-        tenSanPham: sanPham.ten,
-        soLuong: soLuong,
-        soDT: soDT
-      };
-
-      fetch('https://script.google.com/macros/s/AKfycbypLUkmRXe6mh3Mp3GeQGtQQQHmW8sir4EycVGQ3Ku2VDUnRO1EJCdSV3YjMPO1EJ3E/exec', { // Thay YOUR_WEBAPP_ID bằng ID thật
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(donHang)
-      })
-      .then(res => res.text())
-      .then(txt => {
-        document.getElementById('ketQua').innerText = txt;
-      })
-      .catch(err => {
-        document.getElementById('ketQua').innerText = "Lỗi gửi đơn hàng: " + err.message;
-      });
-    }
-  </script>
-</head>
-<body>
-  <h1>Giỏ hàng và Đặt hàng từ Sheet</h1>
-  <div id="output">Đang tải dữ liệu sản phẩm...</div>
-</body>
-</html>
+products.html
+  <!DOCTYPE html>
+  <html lang="vi">
+  <head>
+    <meta charset="UTF-8">
+    <title>Sản phẩm</title>
+    <style>
+      body { font-family: Arial; }
+    </style>
+  </head>
+  <body>
+    
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1KyISRfNln_bgpAmgAOhPnNWEjRG6bzf7" alt="render" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">render</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          100.000đ/100g2 <span style="text-decoration: line-through; color: gray; margin-left: 5px;">200.000đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-50%</div>
+        </div>
+        <p title="củ cải trắng2 tươi ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">củ cải trắng2 tươi ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753701867994" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753701867994);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1GIyCTe0x9yPl_6479UxaAn2Ulywu5POu" alt="Củ cà rốt cache" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Củ cà rốt cache</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          9.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">50.000đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-82%</div>
+        </div>
+        <p title="cà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ1 sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinh" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">cà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ1 sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinhcà rốt chất lượng, giúp bổ sung nhiều vitamin và chất sơ, giúp sáng mắt, điều áp hệ thần kinh</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702133379" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702133379);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1nuL49CGx0CmIhoeOlUs5qcetBBTuQxR4" alt="Liên hệ" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Liên hệ</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          9.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="cà rốt chất lượng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">cà rốt chất lượng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702133379" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702133379);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1IHQTtq7VUIBRgqQvgWwjEwPTkE6Le1og" alt="Củ dền đỏcacheTD" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Củ dền đỏcacheTD</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          19.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="củ dền dỏ thơm ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">củ dền dỏ thơm ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702245098" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702245098);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1L85EX5L2gDyDOcgflzj9tyKzKN0qWy-w" alt="củ khoai tây" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">củ khoai tây</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          90.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="khoai tây bổ dưỡng thơm ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">khoai tây bổ dưỡng thơm ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702339617" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702339617);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=16yHE2X2-DbKGLvEGa_WtfiM4gx2aEo6t" alt="Củ đậu" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Củ đậu</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          99.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="củ đậu bỗ dưỡng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">củ đậu bỗ dưỡng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702438946" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702438946);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1XlWD7FcFbgsQhtIIJpbjPUS2GBc8KdRK" alt="Rau dền" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Rau dền</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          99.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="rau dền tươi ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">rau dền tươi ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702806599" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702806599);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1F5cBhmjV7Z9IGrDgilDs8btSomgJBJvu" alt="Rau hẹ" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Rau hẹ</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          99.999đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="rau hẹ bỗ dưỡng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">rau hẹ bỗ dưỡng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753702880636" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753702880636);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1rAUvSQdZfVVKCOd2CC3BAdkyIazu5kyo" alt="Rau lang" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Rau lang</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          1.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="rau lang thơm ngon bỗ dưỡng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">rau lang thơm ngon bỗ dưỡng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753703454221" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753703454221);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=19nPsartgPaZffmyGaGrldmpbZ9aP5JyZ" alt="Rau mùi" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Rau mùi</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          50.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="rau mùi tốt cho sức khoẻ" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">rau mùi tốt cho sức khoẻ</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753703953715" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753703953715);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1ZQn0cladQQatZqFsotqqB624RIp0C2RY" alt="Rau muống" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Rau muống</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          3.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="rau muống tươi ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">rau muống tươi ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753704171367" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753704171367);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1MwI4M4ZiqhWf3OTOy96DwreAXDisv0FD" alt="Chuối" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Chuối</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          10.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="chuối rất tốt cho sức khoẻ" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">chuối rất tốt cho sức khoẻ</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705365867" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705365867);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=12vbdUjw9Za4uiPlTK2oxmSh59vVVwFpd" alt="Trái dứa" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Trái dứa</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          50.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="dứa thơm ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">dứa thơm ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705429804" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705429804);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1siMS9qzVAZ0eGVZW6EUJks0blCsYoeEq" alt="dưa hấu" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">dưa hấu</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          69.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="dưa hấu mát mẻ cho hè" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">dưa hấu mát mẻ cho hè</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705514882" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705514882);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=14ZoXtbnPR2-14d985UOdjW5obRlFv0fI" alt="Nho" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Nho</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          70.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="nho nhập khẩu" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">nho nhập khẩu</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705568102" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705568102);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=127YecQDAgCLkNm_rMCBoL4DTUwAemAEb" alt="Quả cam" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Quả cam</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          70.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="cam bỗ dưỡng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">cam bỗ dưỡng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705616511" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705616511);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1yIZHDkG6L1SAzrtpd2lRcX1ntBeaUId0" alt="Trái bơ" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Trái bơ</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          40.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-100%</div>
+        </div>
+        <p title="Bơ béo thơm ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Bơ béo thơm ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753705678031" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753705678031);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1Vf-kQo6XzpNXUcmqKGA8HFdZTOWaHx4m" alt="Trái táo" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Trái táo</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          99.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="táo đỏ bỗ dưỡng" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">táo đỏ bỗ dưỡng</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753706150033" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753706150033);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1a3RtLi_qrRPzLA0eSG4mNvEJ_sqcgw9U" alt="Thanh long " style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Thanh long </h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          600.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-94%</div>
+        </div>
+        <p title="thanh long ruột trắng bao ngon" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">thanh long ruột trắng bao ngon</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753706272114" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753706272114);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=1rHZ3vp_NR3Kwc6ZV4L1ROkvOKJtGzGc-" alt="Trái quýt" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">Trái quýt</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          99.000đ/kg <span style="text-decoration: line-through; color: gray; margin-left: 5px;">10.011.111đ</span> <div style="background:#e53935;color:#fff;padding:2px 5px;border-radius:3px;display:inline-block;margin-left:6px;">-99%</div>
+        </div>
+        <p title="quýt ruột thơm bao ngon bao rẻ" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">quýt ruột thơm bao ngon bao rẻ</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1753706340441" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1753706340441);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" style="border:1px solid #ddd; padding:10px; margin:10px; width:200px; float:left; position: relative;">
+        <img src="https://drive.google.com/thumbnail?id=18swRk9XUHN7YZZbPBGVwrLh3K9N6LU1l" alt="moi" style="width:100%; height:140px; object-fit:cover; border-radius:5px;">
+        <h4 style="color:#004c10;">moi</h4>
+        <div style="color:red; font-weight:bold; font-size:18px;">
+          Liên hệ  
+        </div>
+        <p title="33" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">33</p>
+        <div class="card-footer input-group" style="margin-top:10px;">
+          <input type="number" min="1" value="1" class="form-control" id="txtquantity_1754708007490" placeholder="Số lượng">
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" type="button" onclick="app.addtoCart(1754708007490);">
+              Thêm
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cart-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-left:4px;">
+                <path fill-rule="evenodd" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+  </body>
+  </html>
+  
